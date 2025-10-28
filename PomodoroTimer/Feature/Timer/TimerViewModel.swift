@@ -19,7 +19,10 @@ final class TimerViewModel {
     
     var remainingTimeFormatted: String?
     
-    var isSoundOn = true
+    var isEditingTimeSelectAngle = false
+    var timeSelectAngle: Double = 0
+    
+    var isSoundOn = false
     
     // MARK: Dependency
     private let systemSoundPlayer: SystemSoundPlayer
@@ -34,10 +37,15 @@ final class TimerViewModel {
         record != nil
     }
     
-    func startRecordTimer(type: RecordType) {
+    func onEditedTimer(angle: Double) {
+        let durationSecond = Int(angle * 10)
+        startRecordTimer(durationSecond: durationSecond, type: record?.type == .shortBreak ? .shortBreak : .focus)
+    }
+    
+    func startRecordTimer(durationSecond: Int, type: RecordType) {
         record = .init(
             startedAt: .now,
-            durationSecond: type == .focus ? Minute(25).second : Minute(5).second,
+            durationSecond: durationSecond,
             type: type
         )
         playSystemSoundIfNeeded(sound: type == .focus ? .beginVideoRecording : .endVideoRecording)
@@ -55,6 +63,7 @@ final class TimerViewModel {
         record = nil
         remainingTimeFormatted = nil
         recordTimerTask?.cancel()
+        timeSelectAngle = 0
         playSystemSoundIfNeeded(sound: .endVideoRecording)
         UIApplication.shared.isIdleTimerDisabled = false
     }
@@ -65,7 +74,10 @@ final class TimerViewModel {
         
         if endScheduleDate < .now {
             endRecordTimer()
-            startRecordTimer(type: record.type == .focus ? .shortBreak : .focus)
+            startRecordTimer(
+                durationSecond: record.type == .focus ? Minute(5).second : Minute(25).second,
+                type: record.type == .focus ? .shortBreak : .focus
+            )
             return
         }
         
@@ -73,7 +85,10 @@ final class TimerViewModel {
     }
     
     private func updateRemainingTime(endScheduleDate: Date) {
+        guard !isEditingTimeSelectAngle else { return }
+        
         let timeInterval = endScheduleDate.timeIntervalSince(.now)
+        timeSelectAngle = timeInterval / 10
         
         if timeInterval <= 0 {
             remainingTimeFormatted = "00:00"

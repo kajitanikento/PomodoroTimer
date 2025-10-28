@@ -10,6 +10,7 @@ import SwiftUI
 struct TimerView: View {
     
     @Bindable var viewModel = TimerViewModel()
+    @State var isSnapToMinute = true
     
     var body: some View {
         ZStack {
@@ -18,37 +19,56 @@ struct TimerView: View {
                     .ignoresSafeArea()
             }
             timerLabels
+            timeSelectorClock
             bottomButtons
         }
     }
     
+    // MARK: TimeSelect
+    
+    var timeSelectorClock: some View {
+        DraggableClock(
+            angle: $viewModel.timeSelectAngle,
+            isEditing: $viewModel.isEditingTimeSelectAngle,
+            isSnapToMinute: $isSnapToMinute,
+            effectTimeColor: Color.red.opacity(0.8),
+            onEdited: { angle in
+                viewModel.onEditedTimer(angle: angle)
+            }
+        )
+    }
+    
+    
     // MARK: Timer label
     
-    @ViewBuilder
     var timerLabels: some View {
-        if viewModel.isRecording {
-            activeTimerLabels
-        } else {
-            deactiveTimerLabels
+        VStack {
+            if viewModel.isRecording {
+                activeTimerLabels
+            } else {
+                deactiveTimerLabels
+            }
+            Spacer()
         }
+        .padding(.top, 80)
     }
     
     var activeTimerLabels: some View {
         VStack(spacing: 4) {
+//            if let record = viewModel.record {
+//                Text(record.type.label)
+//                    .font(.system(size: 24, weight: .bold))
+//                    .padding(.vertical, 12)
+//                    .padding(.horizontal, 16)
+//                    .foregroundStyle(.white)
+//                    .background(record.type.backgroundColor)
+//                    .clipShape(RoundedRectangle(cornerRadius: 20))
+//            }
             if let remainingTime = viewModel.remainingTimeFormatted {
                 Text(remainingTime)
-                    .font(.system(size: 48, weight: .bold))
+                    .font(.system(size: 60, weight: .bold))
                     .foregroundStyle(Color.Asset.Text.blackPrimary)
                     .monospacedDigit()
-            }
-            if let record = viewModel.record {
-                Text(record.type.label)
-                    .font(.system(size: 20, weight: .bold))
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
-                    .foregroundStyle(.white)
-                    .background(record.type.backgroundColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
             }
         }
     }
@@ -67,7 +87,9 @@ struct TimerView: View {
             HStack(spacing: 12) {
                 Spacer()
                 switchSoundButton
-                switchTimerButton
+                if viewModel.isRecording {
+                    stopButton
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -84,7 +106,7 @@ struct TimerView: View {
     
     var startButton: some View {
         Button(action: {
-            viewModel.startRecordTimer(type: .focus)
+            viewModel.startRecordTimer(durationSecond: Minute(25).second, type: .focus)
         }) {
             buttonImage("play.fill", backgroundColor: .blue)
         }
