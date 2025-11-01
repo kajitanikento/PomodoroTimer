@@ -1,5 +1,5 @@
 //
-//  DraggableClock.swift
+//  DraggableTimerView.swift
 //  PomodoroTimer
 //
 //  Created by kajitani kento on 2025/10/27.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DraggableClock: View {
+struct DraggableTimerView: View {
     // 0°(12時)～360° 時計回り
     @Binding var angle: Double
     @Binding var isEditing: Bool
@@ -22,48 +22,13 @@ struct DraggableClock: View {
                 let radius = side / 2
                 
                 ZStack {
-                    Sector(endAngle: angle, inset: 10)
-                        .fill(effectTimeColor)
-                        .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                    durationIndicator
+                    dial(radius: radius)
+                    clockHands(radius: radius)
                     
-                    // 文字盤
-                    Circle()
-                        .stroke(.secondary, lineWidth: 2)
-                    
-                    // 目盛り（5分ごとを太く）
-                    ForEach(0..<60) { i in
-                        Capsule()
-                            .frame(width: i % 5 == 0 ? 3 : 1,
-                                   height: i % 5 == 0 ? 14 : 6)
-                            .offset(y: -radius + 10)
-                            .rotationEffect(.degrees(Double(i) * 6))
-                            .opacity(i % 5 == 0 ? 1 : 0.6)
-                    }
-                    
-                    // 針（デフォルトは上向き＝12時、そこから回転）
-                    Capsule()
-                        .frame(width: 6, height: radius)
-                        .padding(12)
-                        .offset(y: -radius * 0.45)
-                        .rotationEffect(.degrees(-angle))
-                        .simultaneousGesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    isEditing = true
-                                }
-                                .onEnded { _ in
-                                    isEditing = false
-                                    onEdited(angle)
-                                }
-                        )
-                    
-                    // 中心キャップ
-                    Circle()
-                        .fill(.primary)
-                        .frame(width: 10, height: 10)
                 }
                 .frame(width: side, height: side)
-                .contentShape(Circle()) // 盤面どこでもドラッグ可
+                .contentShape(Circle())
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
@@ -87,10 +52,58 @@ struct DraggableClock: View {
             .aspectRatio(1, contentMode: .fit)
             .padding(24)
         }
-        .padding()
     }
     
-    /// 0時=0°, 反時計回りに増加（9時=90°, 6時=180°, 3時=270°）
+    // MARK: - Subviews
+    
+    private var durationIndicator: some View {
+        DurationIndicator(endAngle: angle, inset: 10)
+            .fill(effectTimeColor)
+            .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+    }
+    
+    /// 文字盤
+    @ViewBuilder
+    private func dial(radius: CGFloat) -> some View {
+        Circle()
+            .stroke(.secondary, lineWidth: 2)
+        // 目盛り（5分ごとを太く）
+        ForEach(0..<60) { i in
+            Capsule()
+                .frame(width: i % 5 == 0 ? 3 : 1,
+                       height: i % 5 == 0 ? 14 : 6)
+                .offset(y: -radius + 10)
+                .rotationEffect(.degrees(Double(i) * 6))
+                .opacity(i % 5 == 0 ? 1 : 0.6)
+        }
+    }
+    
+    /// 時計の針
+    @ViewBuilder
+    private func clockHands(radius: CGFloat) -> some View {
+        Capsule()
+            .frame(width: 6, height: radius)
+            .padding(12)
+            .offset(y: -radius * 0.45)
+            .rotationEffect(.degrees(-angle))
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        isEditing = true
+                    }
+                    .onEnded { _ in
+                        isEditing = false
+                        onEdited(angle)
+                    }
+            )
+        Circle()
+            .fill(.primary)
+            .frame(width: 10, height: 10)
+    }
+    
+    // MARK: - Helpers
+    
+    /// 12時=0°, 反時計回りに増加（9時=90°, 6時=180°, 3時=270°）
     private func angleFromTop(location: CGPoint, in size: CGSize) -> Double {
         let cx = size.width / 2
         let cy = size.height / 2
@@ -104,20 +117,15 @@ struct DraggableClock: View {
     }
     
     private func snapAngle(_ deg: Double, step: Double) -> Double {
-            (deg / step).rounded() * step
-        }
+        (deg / step).rounded() * step
+    }
 }
 
 /// 12時=0°, 反時計回り endAngle 度までを塗る扇形
-struct Sector: Shape {
-    var endAngle: Double          // 0...360 (CCW from 12 o'clock)
-    var inset: CGFloat = 8        // 外周ストロークや目盛りと干渉しないよう内側に引っ込める量
-    
-    // 角度をアニメーション可能に
-    var animatableData: Double {
-        get { endAngle }
-        set { endAngle = newValue }
-    }
+private struct DurationIndicator: Shape {
+    var endAngle: Double
+    // 外周ストロークや目盛りと干渉しないよう内側に引っ込める量
+    var inset: CGFloat = 8
     
     func path(in rect: CGRect) -> Path {
         var p = Path()
@@ -134,7 +142,7 @@ struct Sector: Shape {
         }
         
         p.move(to: c)
-        // SwiftUIのPathは「右=0°、反時計回りが正」。12時は -90°
+        // Pathは「右=0°、反時計回りが正」。12時は -90°
         p.addArc(center: c,
                  radius: r,
                  startAngle: .degrees(-90),
@@ -152,7 +160,7 @@ private struct PreviewContent: View {
     @State var isSnapToMinute = false
     
     var body: some View {
-        DraggableClock(
+        DraggableTimerView(
             angle: $angle,
             isEditing: $isEditing,
             isSnapToMinute: $isSnapToMinute,

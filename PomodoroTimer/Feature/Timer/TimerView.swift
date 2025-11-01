@@ -27,7 +27,7 @@ struct TimerView: View {
     // MARK: TimeSelect
     
     var timeSelectorClock: some View {
-        DraggableClock(
+        DraggableTimerView(
             angle: $viewModel.timeSelectAngle,
             isEditing: $viewModel.isEditingTimeSelectAngle,
             isSnapToMinute: $isSnapToMinute,
@@ -55,15 +55,6 @@ struct TimerView: View {
     
     var activeTimerLabels: some View {
         VStack(spacing: 4) {
-//            if let record = viewModel.record {
-//                Text(record.type.label)
-//                    .font(.system(size: 24, weight: .bold))
-//                    .padding(.vertical, 12)
-//                    .padding(.horizontal, 16)
-//                    .foregroundStyle(.white)
-//                    .background(record.type.backgroundColor)
-//                    .clipShape(RoundedRectangle(cornerRadius: 20))
-//            }
             if let remainingTime = viewModel.remainingTimeFormatted {
                 Text(remainingTime)
                     .font(.system(size: 60, weight: .bold))
