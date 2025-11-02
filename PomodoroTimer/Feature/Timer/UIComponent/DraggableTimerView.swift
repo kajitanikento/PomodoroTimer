@@ -42,8 +42,13 @@ struct DraggableTimerView: View {
                                 (angle < 60 && newAngle > 300) {
                                 return
                             }
-                            
+                            // 不自然な角度移動を防止
                             if abs(angle - newAngle) > 90 {
+                                return
+                            }
+                            // 0°指定がしにくいので
+                            if angle <= 5 {
+                                angle = 0
                                 return
                             }
                             
