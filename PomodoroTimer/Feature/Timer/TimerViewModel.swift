@@ -25,7 +25,6 @@ final class TimerViewModel {
     var timeSelectAngle: Double = 0
     
     var setting: TimerSetting
-    var isSoundOn = false
     
     // MARK: Dependency
     private let systemSoundPlayer: SystemSoundPlayer
@@ -120,7 +119,7 @@ final class TimerViewModel {
     }
     
     private func playSystemSoundIfNeeded(sound: SystemSound) {
-        guard isSoundOn else { return }
+        guard setting.isSoundOn else { return }
         systemSoundPlayer.play(sound: sound)
     }
     

@@ -93,45 +93,19 @@ struct TimerView: View {
             .foregroundStyle(Color.Asset.Text.blackPrimary)
     }
     
-    // MARK: Settings
-    
-    var settings: some View {
-        VStack(spacing: 12) {
-            switchSoundButton
-        }
-    }
-    
     var stopButton: some View {
         Button(action: viewModel.onTapStopTimer) {
-            buttonImage("stop.fill", backgroundColor: viewModel.record?.type.backgroundColor ?? .blue)
+            Image(systemName: "stop.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20)
+                .padding(20)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .background((viewModel.record?.type.backgroundColor ?? .blue).opacity(0.8))
+                .clipShape(RoundedRectangle(cornerRadius: 40))
+                .glassEffect()
         }
-    }
-    
-    var switchSoundButton: some View {
-        Button(action: {
-            viewModel.isSoundOn.toggle()
-        }) {
-            buttonImage(
-                viewModel.isSoundOn ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                backgroundColor: .gray
-            )
-        }
-    }
-    
-    func buttonImage(
-        _ systemName: String,
-        backgroundColor: Color
-    ) -> some View {
-        Image(systemName: systemName)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 20)
-            .padding(20)
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .background(backgroundColor.opacity(0.8))
-            .clipShape(RoundedRectangle(cornerRadius: 40))
-            .glassEffect()
     }
 }
 
