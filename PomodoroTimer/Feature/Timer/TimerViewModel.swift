@@ -13,6 +13,8 @@ import Foundation
 @Observable
 final class TimerViewModel {
     
+    var destinationSheet: DestinationSheet?
+    
     var record: Record?
     private var recordTimer = AsyncTimerSequence(interval: .seconds(1), clock: .continuous)
     private var recordTimerTask: Task<Void, Never>?
@@ -22,14 +24,16 @@ final class TimerViewModel {
     var isEditingTimeSelectAngle = false
     var timeSelectAngle: Double = 0
     
-    var isSoundOn = false
+    var setting: TimerSetting
     
     // MARK: Dependency
     private let systemSoundPlayer: SystemSoundPlayer
     
     init(
+        timerSetting: TimerSetting = .default,
         systemSoundPlayer: SystemSoundPlayer = .init()
     ) {
+        setting = timerSetting
         self.systemSoundPlayer = systemSoundPlayer
     }
     
@@ -38,11 +42,15 @@ final class TimerViewModel {
     }
     
     func onEditedTimer(angle: Double) {
+        guard angle > 0 else {
+            endRecordTimer()
+            return
+        }
         let durationSecond = Int(angle * 10)
         startRecordTimer(durationSecond: durationSecond, type: record?.type == .shortBreak ? .shortBreak : .focus)
     }
     
-    func startRecordTimer(durationSecond: Int, type: RecordType) {
+    private func startRecordTimer(durationSecond: Int, type: RecordType) {
         record = .init(
             startedAt: .now,
             durationSecond: durationSecond,
@@ -59,7 +67,11 @@ final class TimerViewModel {
         }
     }
     
-    func endRecordTimer() {
+    func onTapStopTimer() {
+        endRecordTimer()
+    }
+    
+    private func endRecordTimer() {
         record = nil
         remainingTimeFormatted = nil
         recordTimerTask?.cancel()
@@ -74,10 +86,10 @@ final class TimerViewModel {
         
         if endScheduleDate < .now {
             endRecordTimer()
-            startRecordTimer(
-                durationSecond: record.type == .focus ? Minute(5).second : Minute(25).second,
-                type: record.type == .focus ? .shortBreak : .focus
-            )
+//            startRecordTimer(
+//                durationSecond: record.type == .focus ? Minute(5).second : Minute(25).second,
+//                type: record.type == .focus ? .shortBreak : .focus
+//            )
             return
         }
         
@@ -107,7 +119,21 @@ final class TimerViewModel {
     }
     
     private func playSystemSoundIfNeeded(sound: SystemSound) {
-        guard isSoundOn else { return }
+        guard setting.isSoundOn else { return }
         systemSoundPlayer.play(sound: sound)
+    }
+    
+    func onTapSetting() {
+        destinationSheet = .setting
+    }
+}
+
+extension TimerViewModel {
+    enum DestinationSheet: String, Identifiable {
+        case setting
+        
+        var id: String {
+            rawValue
+        }
     }
 }

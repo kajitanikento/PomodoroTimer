@@ -11,9 +11,12 @@ struct DraggableTimerView: View {
     // 0°(12時)～360° 時計回り
     @Binding var angle: Double
     @Binding var isEditing: Bool
-    @Binding var isSnapToMinute: Bool
-    var effectTimeColor: Color
+    var isSnapToMinute: Bool
+    var effectTimeColor: Color = .red
+    var backgroundColor: Color = .white
     var onEdited: (Double) -> Void = { _ in }
+    
+    @State private var isShowClockHandsFocus = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -25,32 +28,36 @@ struct DraggableTimerView: View {
                     durationIndicator
                     dial(radius: radius)
                     clockHands(radius: radius)
-                    
                 }
                 .frame(width: side, height: side)
+                .background(backgroundColor)
                 .contentShape(Circle())
+                .clipShape(Circle())
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             guard isEditing else { return }
-                            let newAngle = angleFromTop(location: value.location, in: geometry.size)
+                            var newAngle = angleFromTop(location: value.location, in: geometry.size)
                             
                             // 一周しないようにする
-                            if (angle > 300 && newAngle < 60) ||
-                                (angle < 60 && newAngle > 300) {
-                                return
+                            if (angle < 60 && newAngle >= 300) {
+                                newAngle = 0
                             }
-                            
+                            if (angle >= 300 && newAngle < 60) {
+                                newAngle = 360
+                            }
+                            // 不自然な角度移動を防止
                             if abs(angle - newAngle) > 90 {
                                 return
                             }
                             
-                            angle = isSnapToMinute ? snapAngle(newAngle, step: 6) : newAngle
+                            withAnimation(.linear(duration: 0.08)) {
+                                angle = newAngle
+                            }
                         }
                 )
             }
             .aspectRatio(1, contentMode: .fit)
-            .padding(24)
         }
     }
     
@@ -84,21 +91,40 @@ struct DraggableTimerView: View {
         Capsule()
             .frame(width: 6, height: radius)
             .padding(12)
+            .background(clockHandsFocus)
             .offset(y: -radius * 0.45)
             .rotationEffect(.degrees(-angle))
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
                         isEditing = true
+                        withAnimation(.easeIn(duration: 0.2)) {
+                            isShowClockHandsFocus = true
+                        }
                     }
                     .onEnded { _ in
                         isEditing = false
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            isShowClockHandsFocus = false
+                        }
+                        if isSnapToMinute {
+                            angle = snapAngle(angle, step: 6)
+                        }
                         onEdited(angle)
                     }
             )
+            .sensoryFeedback(.impact, trigger: isEditing)
         Circle()
             .fill(.primary)
             .frame(width: 10, height: 10)
+    }
+    
+    @ViewBuilder
+    private var clockHandsFocus: some View {
+        if isShowClockHandsFocus {
+            Capsule()
+                .fill(.pink.opacity(0.4))
+        }
     }
     
     // MARK: - Helpers
@@ -126,6 +152,10 @@ private struct DurationIndicator: Shape {
     var endAngle: Double
     // 外周ストロークや目盛りと干渉しないよう内側に引っ込める量
     var inset: CGFloat = 8
+    var animatableData: Double {
+        get { endAngle }
+        set { endAngle = newValue }
+    }
     
     func path(in rect: CGRect) -> Path {
         var p = Path()
@@ -157,14 +187,14 @@ private struct DurationIndicator: Shape {
 private struct PreviewContent: View {
     @State var angle: Double = 0
     @State var isEditing = false
-    @State var isSnapToMinute = false
     
     var body: some View {
         DraggableTimerView(
             angle: $angle,
             isEditing: $isEditing,
-            isSnapToMinute: $isSnapToMinute,
-            effectTimeColor: Color.blue.opacity(0.28)
+            isSnapToMinute: true,
+            effectTimeColor: .red.opacity(0.8),
+            backgroundColor: .white
         )
     }
 }
