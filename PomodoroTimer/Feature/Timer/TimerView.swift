@@ -17,7 +17,7 @@ struct TimerView: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Settings", systemImage: "gearshape.fill") {
-                            viewModel.onTapSettingButton()
+                            viewModel.onTapSetting()
                         }
                         .tint(.gray)
                     }
@@ -102,7 +102,7 @@ struct TimerView: View {
     }
     
     var stopButton: some View {
-        Button(action: viewModel.endRecordTimer) {
+        Button(action: viewModel.onTapStopTimer) {
             buttonImage("stop.fill", backgroundColor: viewModel.record?.type.backgroundColor ?? .blue)
         }
     }

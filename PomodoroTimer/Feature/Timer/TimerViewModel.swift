@@ -43,11 +43,15 @@ final class TimerViewModel {
     }
     
     func onEditedTimer(angle: Double) {
+        guard angle > 0 else {
+            endRecordTimer()
+            return
+        }
         let durationSecond = Int(angle * 10)
         startRecordTimer(durationSecond: durationSecond, type: record?.type == .shortBreak ? .shortBreak : .focus)
     }
     
-    func startRecordTimer(durationSecond: Int, type: RecordType) {
+    private func startRecordTimer(durationSecond: Int, type: RecordType) {
         record = .init(
             startedAt: .now,
             durationSecond: durationSecond,
@@ -64,7 +68,11 @@ final class TimerViewModel {
         }
     }
     
-    func endRecordTimer() {
+    func onTapStopTimer() {
+        endRecordTimer()
+    }
+    
+    private func endRecordTimer() {
         record = nil
         remainingTimeFormatted = nil
         recordTimerTask?.cancel()
@@ -116,7 +124,7 @@ final class TimerViewModel {
         systemSoundPlayer.play(sound: sound)
     }
     
-    func onTapSettingButton() {
+    func onTapSetting() {
         destinationSheet = .setting
     }
 }
