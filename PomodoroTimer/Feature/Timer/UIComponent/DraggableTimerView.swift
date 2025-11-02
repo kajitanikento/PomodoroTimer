@@ -35,7 +35,7 @@ struct DraggableTimerView: View {
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             guard isEditing else { return }
-                            let newAngle = angleFromTop(location: value.location, in: geometry.size)
+                            var newAngle = angleFromTop(location: value.location, in: geometry.size)
                             
                             // 一周しないようにする
                             if (angle > 300 && newAngle < 60) ||
@@ -47,13 +47,15 @@ struct DraggableTimerView: View {
                                 return
                             }
                             // 0°指定がしにくいので
-                            if angle > 5,
-                               newAngle <= 4 {
-                                angle = 0
+                            if angle > 6,
+                               newAngle <= 5 {
+                                newAngle = 0
                                 return
                             }
                             
-                            angle = isSnapToMinute ? snapAngle(newAngle, step: 6) : newAngle
+                            withAnimation(.linear(duration: 0.08)) {
+                                angle = newAngle
+                            }
                         }
                 )
             }
@@ -100,6 +102,9 @@ struct DraggableTimerView: View {
                     }
                     .onEnded { _ in
                         isEditing = false
+                        if isSnapToMinute {
+                            angle = snapAngle(angle, step: 6)
+                        }
                         onEdited(angle)
                     }
             )
@@ -133,6 +138,10 @@ private struct DurationIndicator: Shape {
     var endAngle: Double
     // 外周ストロークや目盛りと干渉しないよう内側に引っ込める量
     var inset: CGFloat = 8
+    var animatableData: Double {
+        get { endAngle }
+        set { endAngle = newValue }
+    }
     
     func path(in rect: CGRect) -> Path {
         var p = Path()
