@@ -47,7 +47,8 @@ struct DraggableTimerView: View {
                                 return
                             }
                             // 0°指定がしにくいので
-                            if angle <= 5 {
+                            if angle > 5,
+                               newAngle <= 4 {
                                 angle = 0
                                 return
                             }
