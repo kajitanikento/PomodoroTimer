@@ -16,6 +16,8 @@ struct DraggableTimerView: View {
     var backgroundColor: Color = .white
     var onEdited: (Double) -> Void = { _ in }
     
+    @State private var isShowClockHandsFocus = false
+    
     var body: some View {
         VStack(spacing: 16) {
             GeometryReader { geometry in
@@ -38,18 +40,14 @@ struct DraggableTimerView: View {
                             var newAngle = angleFromTop(location: value.location, in: geometry.size)
                             
                             // 一周しないようにする
-                            if (angle > 300 && newAngle < 60) ||
-                                (angle < 60 && newAngle > 300) {
-                                return
+                            if (angle < 60 && newAngle >= 300) {
+                                newAngle = 0
+                            }
+                            if (angle >= 300 && newAngle < 60) {
+                                newAngle = 360
                             }
                             // 不自然な角度移動を防止
                             if abs(angle - newAngle) > 90 {
-                                return
-                            }
-                            // 0°指定がしにくいので
-                            if angle > 6,
-                               newAngle <= 5 {
-                                newAngle = 0
                                 return
                             }
                             
@@ -93,24 +91,40 @@ struct DraggableTimerView: View {
         Capsule()
             .frame(width: 6, height: radius)
             .padding(12)
+            .background(clockHandsFocus)
             .offset(y: -radius * 0.45)
             .rotationEffect(.degrees(-angle))
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
                         isEditing = true
+                        withAnimation(.easeIn(duration: 0.2)) {
+                            isShowClockHandsFocus = true
+                        }
                     }
                     .onEnded { _ in
                         isEditing = false
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            isShowClockHandsFocus = false
+                        }
                         if isSnapToMinute {
                             angle = snapAngle(angle, step: 6)
                         }
                         onEdited(angle)
                     }
             )
+            .sensoryFeedback(.impact, trigger: isEditing)
         Circle()
             .fill(.primary)
             .frame(width: 10, height: 10)
+    }
+    
+    @ViewBuilder
+    private var clockHandsFocus: some View {
+        if isShowClockHandsFocus {
+            Capsule()
+                .fill(.pink.opacity(0.4))
+        }
     }
     
     // MARK: - Helpers
@@ -179,8 +193,8 @@ private struct PreviewContent: View {
             angle: $angle,
             isEditing: $isEditing,
             isSnapToMinute: true,
-            effectTimeColor: Color.blue.opacity(0.28),
-            backgroundColor: .orange
+            effectTimeColor: .red.opacity(0.8),
+            backgroundColor: .white
         )
     }
 }
