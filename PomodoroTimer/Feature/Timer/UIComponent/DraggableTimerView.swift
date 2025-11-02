@@ -11,8 +11,9 @@ struct DraggableTimerView: View {
     // 0°(12時)～360° 時計回り
     @Binding var angle: Double
     @Binding var isEditing: Bool
-    @Binding var isSnapToMinute: Bool
-    var effectTimeColor: Color
+    var isSnapToMinute: Bool
+    var effectTimeColor: Color = .red
+    var backgroundColor: Color = .white
     var onEdited: (Double) -> Void = { _ in }
     
     var body: some View {
@@ -25,10 +26,11 @@ struct DraggableTimerView: View {
                     durationIndicator
                     dial(radius: radius)
                     clockHands(radius: radius)
-                    
                 }
                 .frame(width: side, height: side)
+                .background(backgroundColor)
                 .contentShape(Circle())
+                .clipShape(Circle())
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
@@ -50,7 +52,6 @@ struct DraggableTimerView: View {
                 )
             }
             .aspectRatio(1, contentMode: .fit)
-            .padding(24)
         }
     }
     
@@ -157,14 +158,14 @@ private struct DurationIndicator: Shape {
 private struct PreviewContent: View {
     @State var angle: Double = 0
     @State var isEditing = false
-    @State var isSnapToMinute = false
     
     var body: some View {
         DraggableTimerView(
             angle: $angle,
             isEditing: $isEditing,
-            isSnapToMinute: $isSnapToMinute,
-            effectTimeColor: Color.blue.opacity(0.28)
+            isSnapToMinute: true,
+            effectTimeColor: Color.blue.opacity(0.28),
+            backgroundColor: .orange
         )
     }
 }

@@ -10,19 +10,56 @@ import SwiftUI
 struct TimerView: View {
     
     @Bindable var viewModel = TimerViewModel()
-    @State var isSnapToMinute = true
     
     var body: some View {
+        NavigationStack {
+            content
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Settings", systemImage: "gearshape.fill") {
+                            viewModel.onTapSettingButton()
+                        }
+                        .tint(.gray)
+                    }
+                }
+                .sheet(item: $viewModel.destinationSheet) { destination in
+                    switch destination {
+                    case .setting:
+                        TimerSettingView(setting: $viewModel.setting)
+                    }
+                }
+        }
+    }
+    
+    var content: some View {
         ZStack {
             if let recordType = viewModel.record?.type {
                 recordType.backgroundColor.opacity(0.4)
                     .ignoresSafeArea()
             }
-            timerLabels
-            timeSelectorClock
-            bottomButtons
+            VStack(spacing: 40) {
+                VStack(spacing: 20) {
+                    timeSelectorClock
+                    if viewModel.setting.isShowAmountLabel {
+                        timerLabel
+                    }
+                }
+                if viewModel.setting.isShowCharacter {
+                    character
+                }
+                
+                Spacer()
+                
+                if viewModel.setting.isShowStopButton,
+                   viewModel.isRecording {
+                    stopButton
+                }
+            }
+            .padding(.horizontal, 20)
         }
     }
+    
+    // MARK: - Subviews
     
     // MARK: TimeSelect
     
@@ -30,76 +67,37 @@ struct TimerView: View {
         DraggableTimerView(
             angle: $viewModel.timeSelectAngle,
             isEditing: $viewModel.isEditingTimeSelectAngle,
-            isSnapToMinute: $isSnapToMinute,
+            isSnapToMinute: viewModel.setting.isSnapToMinute,
             effectTimeColor: Color.red.opacity(0.8),
+            backgroundColor: .white,
             onEdited: { angle in
                 viewModel.onEditedTimer(angle: angle)
             }
         )
     }
     
-    
     // MARK: Timer label
     
-    var timerLabels: some View {
-        VStack {
-            if viewModel.isRecording {
-                activeTimerLabels
-            } else {
-                deactiveTimerLabels
-            }
-            Spacer()
-        }
-        .padding(.top, 80)
+    @ViewBuilder
+    var timerLabel: some View {
+        Text(viewModel.remainingTimeFormatted ?? "00:00")
+            .font(.system(size: 60, weight: .bold))
+            .foregroundStyle(Color.Asset.Text.blackPrimary)
+            .monospacedDigit()
+            .opacity(viewModel.remainingTimeFormatted == nil ? 0.8 : 1)
     }
     
-    var activeTimerLabels: some View {
-        VStack(spacing: 4) {
-            if let remainingTime = viewModel.remainingTimeFormatted {
-                Text(remainingTime)
-                    .font(.system(size: 60, weight: .bold))
-                    .foregroundStyle(Color.Asset.Text.blackPrimary)
-                    .monospacedDigit()
-            }
-        }
-    }
-    
-    var deactiveTimerLabels: some View {
-        Text("(´・ω・) < just do it.")
+    var character: some View {
+        Text(viewModel.isRecording ? "(｀・ω・´)" : "(´・ω・)")
             .font(.system(size: 32, weight: .bold))
             .foregroundStyle(Color.Asset.Text.blackPrimary)
     }
     
-    // MARK: Bottom buttons
+    // MARK: Settings
     
-    var bottomButtons: some View {
-        VStack {
-            Spacer()
-            HStack(spacing: 12) {
-                Spacer()
-                switchSoundButton
-                if viewModel.isRecording {
-                    stopButton
-                }
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-    
-    @ViewBuilder
-    var switchTimerButton: some View {
-        if viewModel.isRecording {
-            stopButton
-        } else {
-            startButton
-        }
-    }
-    
-    var startButton: some View {
-        Button(action: {
-            viewModel.startRecordTimer(durationSecond: Minute(25).second, type: .focus)
-        }) {
-            buttonImage("play.fill", backgroundColor: .blue)
+    var settings: some View {
+        VStack(spacing: 12) {
+            switchSoundButton
         }
     }
     
@@ -130,8 +128,9 @@ struct TimerView: View {
             .frame(width: 20)
             .padding(20)
             .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
             .background(backgroundColor.opacity(0.8))
-            .clipShape(Circle())
+            .clipShape(RoundedRectangle(cornerRadius: 40))
             .glassEffect()
     }
 }
