@@ -97,9 +97,7 @@ struct TimerView: View {
     }
     
     var character: some View {
-        Text(viewModel.isRecording ? "(｀・ω・´)" : "(´・ω・)")
-            .font(.system(size: 32, weight: .bold))
-            .foregroundStyle(Color.Asset.Text.blackPrimary)
+        GifImage(GifAsset.Cat.catOnBall)
     }
     
     var stopButton: some View {
