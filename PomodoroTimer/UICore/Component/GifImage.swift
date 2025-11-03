@@ -28,7 +28,7 @@ struct GifImage: View {
     @ViewBuilder
     var content: some View {
         if let gifImage {
-            Image(uiImage: gifImage)
+            GifImageUIViewRepresentable(uiImage: gifImage)
         } else {
             DummyView()
         }

@@ -46,11 +46,7 @@ extension UIImage {
                 }
                 return nil
             }
-            let decodedImage: UIImage? = if #available(iOS 15, *) {
-                await uiImage?.byPreparingForDisplay()
-            } else {
-                uiImage
-            }
+            let decodedImage: UIImage? = await uiImage?.byPreparingForDisplay()
             guard let decodedImage else {
                 gifFrames.withLock {
                     $0.append((index, []))
@@ -65,7 +61,6 @@ extension UIImage {
         await withTaskGroup(
             of: Void.self
         ) { taskGroup in
-            let context = CIContext()
             for index in 0 ..< count {
                 taskGroup.addTask {
                     await preparingImage(index: index)
