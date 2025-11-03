@@ -69,7 +69,7 @@ final class TimerViewModel {
             durationSecond: durationSecond,
             type: type
         )
-        playSystemSoundIfNeeded(sound: type == .focus ? .beginVideoRecording : .endVideoRecording)
+        playSystemSoundIfNeeded(sound: type == .focus ? .mediaHandoff : .mediaPaused)
         UIApplication.shared.isIdleTimerDisabled = true
         
         handleRecordTimer()
@@ -89,7 +89,7 @@ final class TimerViewModel {
         remainingTimeFormatted = nil
         recordTimerTask?.cancel()
         timeSelectAngle = 0
-        playSystemSoundIfNeeded(sound: .endVideoRecording)
+        playSystemSoundIfNeeded(sound: .mediaPaused)
         UIApplication.shared.isIdleTimerDisabled = false
     }
     

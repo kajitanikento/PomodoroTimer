@@ -16,10 +16,10 @@ struct SystemSoundPlayer {
 }
 
 enum SystemSound: UInt32 {
-    case beginVideoRecording = 1117
-    case endVideoRecording = 1118
+    case mediaPaused = 1368
+    case mediaHandoff = 1369
     
     var systemSoundID: SystemSoundID {
-            self.rawValue as SystemSoundID
-        }
+        self.rawValue as SystemSoundID
+    }
 }
