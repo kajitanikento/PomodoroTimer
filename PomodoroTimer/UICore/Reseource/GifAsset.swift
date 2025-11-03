@@ -19,7 +19,7 @@ enum GifAsset {
 }
 
 extension GifAssetProtocol {
-    func gifImage() async -> Image {
-        Image(uiImage: await .gifImage(dataAssetName: "GIF/\(rawValue)")!)
+    func gifImage() async -> UIImage? {
+        await .gifImage(dataAssetName: "GIF/\(rawValue)")
     }
 }
