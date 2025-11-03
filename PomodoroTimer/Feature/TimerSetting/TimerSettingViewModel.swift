@@ -9,5 +9,15 @@ import Observation
 
 @Observable
 final class TimerSettingViewModel {
-    // TODO: 設定を変更したときに永続化する
+    private let saveTimerSettingUseCase: SaveTimerSettingUseCase
+    
+    init(saveTimerSettingUseCase: SaveTimerSettingUseCase = .init()) {
+        self.saveTimerSettingUseCase = saveTimerSettingUseCase
+    }
+    
+    func onChangeSetting(_ setting: TimerSetting) {
+        Task {
+            try? await saveTimerSettingUseCase.execute(setting)
+        }
+    }
 }

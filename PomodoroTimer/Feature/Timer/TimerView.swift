@@ -6,10 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TimerView: View {
     
-    @Bindable var viewModel = TimerViewModel()
+    @Bindable var viewModel: TimerViewModel
+    @Environment(\.modelContext) private var modelContext
+    
+    init(viewModel: TimerViewModel = .init()) {
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         NavigationStack {
@@ -25,9 +31,12 @@ struct TimerView: View {
                 .sheet(item: $viewModel.destinationSheet) { destination in
                     switch destination {
                     case .setting:
-                        TimerSettingView(setting: $viewModel.setting)
+                        TimerSettingView(
+                            setting: $viewModel.setting
+                        )
                     }
                 }
+                .onAppear(perform: viewModel.onAppear)
         }
     }
     

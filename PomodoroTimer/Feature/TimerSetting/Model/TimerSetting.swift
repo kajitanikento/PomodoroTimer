@@ -5,7 +5,7 @@
 //  Created by kajitani kento on 2025/11/02.
 //
 
-struct TimerSetting {
+struct TimerSetting: Equatable {
     // MARK: 表示
     var isShowAmountLabel: Bool
     var isShowCharacter: Bool

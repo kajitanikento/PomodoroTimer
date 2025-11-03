@@ -6,13 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TimerSettingView: View {
     
     @Environment(\.dismiss) var dismiss
-    @Bindable var viewModel = TimerViewModel()
+    @Bindable private var viewModel: TimerSettingViewModel
 
     @Binding var setting: TimerSetting
+    
+    init(
+        setting: Binding<TimerSetting>,
+        viewModel: TimerSettingViewModel = .init()
+    ) {
+        self._setting = setting
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         NavigationStack {
@@ -32,6 +41,9 @@ struct TimerSettingView: View {
         List {
             displaySection
             controlSection
+        }
+        .onChange(of: setting) {
+            viewModel.onChangeSetting(setting)
         }
     }
     
