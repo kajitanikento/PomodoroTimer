@@ -53,15 +53,20 @@ struct TimerView: View {
                         timerLabel
                     }
                 }
-                if viewModel.setting.isShowCharacter {
-                    character
-                }
                 
                 Spacer()
                 
-                if viewModel.setting.isShowStopButton,
-                   viewModel.isRecording {
-                    stopButton
+                VStack {
+                    if viewModel.setting.isShowCharacter {
+                        HStack {
+                            character
+                            Spacer(minLength: 0)
+                        }
+                    }
+                    if viewModel.setting.isShowStopButton,
+                       viewModel.isRecording {
+                        stopButton
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -96,10 +101,24 @@ struct TimerView: View {
             .opacity(viewModel.remainingTimeFormatted == nil ? 0.8 : 1)
     }
     
+    @ViewBuilder
     var character: some View {
-        Text(viewModel.isRecording ? "(｀・ω・´)" : "(´・ω・)")
-            .font(.system(size: 32, weight: .bold))
-            .foregroundStyle(Color.Asset.Text.blackPrimary)
+        if viewModel.isRecording {
+            CatView(
+                .catOnBall,
+                width: 120
+            )
+        } else {
+            CatView(
+                .waitCat,
+                width: 100
+            )
+        }
+    }
+    
+    func catGif(_ asset: GifAsset.Cat) -> some View {
+        GifImage(asset)
+            .scaledToFit()
     }
     
     var stopButton: some View {
