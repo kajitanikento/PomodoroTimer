@@ -17,11 +17,7 @@ final class TimerSettingViewModel {
     
     func onChangeSetting(_ setting: TimerSetting) {
         Task {
-            do {
-                try await saveTimerSettingUseCase.execute(setting)
-            } catch {
-                print("Failed to save timer setting: \(error)")
-            }
+            try? await saveTimerSettingUseCase.execute(setting)
         }
     }
 }
