@@ -28,13 +28,26 @@ final class TimerViewModel {
     
     // MARK: Dependency
     private let systemSoundPlayer: SystemSoundPlayer
+    private let loadTimerSettingUseCase: LoadTimerSettingUseCase
     
     init(
         timerSetting: TimerSetting = .default,
-        systemSoundPlayer: SystemSoundPlayer = .init()
+        systemSoundPlayer: SystemSoundPlayer = .init(),
+        loadTimerSettingUseCase: LoadTimerSettingUseCase = .init()
     ) {
         setting = timerSetting
         self.systemSoundPlayer = systemSoundPlayer
+        self.loadTimerSettingUseCase = loadTimerSettingUseCase
+    }
+    
+    func onAppear() {
+        Task {
+            await loadSettings()
+        }
+    }
+    
+    private func loadSettings() async {
+        setting = await loadTimerSettingUseCase.execute()
     }
     
     var isRecording: Bool {
